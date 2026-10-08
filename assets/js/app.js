@@ -1,33 +1,172 @@
 'use strict';
 
-// TODO_CONTATOS: preencher somente com URLs e e-mail confirmados.
-const CONTACTS = Object.freeze({ linkedin: '', github: '', email: '' });
+// Endereços profissionais confirmados para os links do Hero e de Contato.
+const CONTACTS = Object.freeze({
+  linkedin: 'https://www.linkedin.com/in/victorciolarinaldo',
+  github: null,
+  email: 'victorciola@gmail.com'
+});
 
 // Para expandir: incluir um case aqui e uma linha editorial com data-project no HTML.
+// Os seletores de preview apontam para os placeholders locais no HTML.
+// Para substituir por imagens anonimizadas, mantenha a classe de cada figure.
 const PROJECTS = Object.freeze({
-  movimentacoes: {
-    title: 'App de Movimentações',
-    summary: 'Aplicação desenvolvida em Power Apps para centralizar solicitações de movimentação de colaboradores, controlar etapas de aprovação e automatizar notificações.',
-    context: 'As solicitações de movimentação passam por diferentes áreas, com regras de edição, perfis de acesso e prazos. O processo precisa de controle das aprovações e acompanhamento das etapas.',
-    solution: 'Desenvolvi a aplicação em Power Apps, com integração ao SharePoint e fluxos no Power Automate para aprovações e notificações.',
-    operation: 'A solicitação percorre as áreas responsáveis. Cada perfil atua conforme suas permissões, com opções de aprovação, reprovação ou devolução para ajuste e acompanhamento visual das etapas.',
-    stages: ['BP', 'Remuneração', 'Organização', 'HR Support', 'Processamento'],
-    features: ['Workflow de aprovação', 'Diferentes perfis de acesso', 'Aprovações individuais e em massa', 'Reprovação e devolução para ajuste', 'Regras de edição', 'Controle de prazos', 'Notificações automáticas', 'Acompanhamento visual das etapas', 'Integração com SharePoint'],
-    technologies: ['Power Apps', 'Power Automate', 'SharePoint'],
-    result: 'A aplicação centraliza as solicitações e permite controlar aprovações e acompanhar etapas. Não há métricas de resultado publicadas.',
-    preview: '.movement-preview'
+  "movimentacoes": {
+    "title": "Gestão de Movimentações de Colaboradores",
+    "summary": "Aplicação desenvolvida com Power Apps para digitalizar solicitações de movimentação de colaboradores, estruturando fluxos de aprovação, controles de acesso e notificações automatizadas.",
+    "context": "O processo de movimentações de colaboradores dependia de trocas de e-mails e controles descentralizados em planilhas, dificultando o acompanhamento das solicitações e das aprovações.",
+    "solution": "Desenvolvi uma aplicação utilizando Power Apps, Power Fx, SharePoint Lists e Power Automate para centralizar as solicitações e organizar o fluxo de aprovações entre as áreas responsáveis.",
+    "operation": "As solicitações são cadastradas e acompanhadas na aplicação. As aprovações seguem condições e etapas, com acesso conforme perfil e responsabilidade, devoluções para ajustes e notificações automatizadas.",
+    "stages": [
+      "Solicitações",
+      "Aprovações",
+      "Histórico",
+      "Indicadores"
+    ],
+    "features": [
+      "Cadastro e acompanhamento de solicitações",
+      "Aprovações condicionais por etapas",
+      "Acesso conforme perfil e responsabilidade",
+      "Aprovações em lote",
+      "Devolução de solicitações para ajustes",
+      "Notificações automáticas",
+      "Histórico de status, responsáveis, datas e observações",
+      "Indicadores em Power BI",
+      "Extração de informações para Excel utilizando Power Query"
+    ],
+    "technologies": [
+      "Power Apps",
+      "Power Fx",
+      "SharePoint",
+      "Power Automate",
+      "Power BI",
+      "Power Query"
+    ],
+    "result": "A aplicação está em produção. Centraliza as solicitações, organiza as aprovações e permite acompanhar o histórico das movimentações.",
+    "preview": ".movement-preview"
   },
-  espaco: {
-    title: 'Planejador de Espaço',
-    summary: 'Aplicação web desenvolvida para simular cenários de ocupação, distribuir equipes entre espaços disponíveis e analisar capacidade e necessidades de alocação.',
-    context: 'O planejamento de ocupação considera colaboradores, capacidade, andares, zonas e áreas, além de absenteísmo e exceções. É necessário identificar espaços disponíveis e déficits de capacidade.',
-    solution: 'Desenvolvi a aplicação em HTML, CSS e JavaScript para organizar informações de ocupação e criar e comparar cenários de planejamento.',
-    operation: 'Os cenários combinam informações de colaboradores e capacidade com as premissas de ocupação. A comparação permite observar a distribuição, a capacidade disponível e eventuais déficits.',
-    stages: ['Informações', 'Premissas', 'Simulação', 'Comparação', 'Visão executiva'],
-    features: ['Planejamento por andares e zonas', 'Quantidade de colaboradores e capacidade', 'Consideração de absenteísmo e exceções', 'Visão por áreas', 'Capacidade disponível e déficit', 'Criação e comparação de cenários', 'Indicadores e visões executivas'],
-    technologies: ['HTML', 'CSS', 'JavaScript', 'Data Analytics'],
-    result: 'A aplicação permite comparar cenários e identificar capacidade disponível e déficits. Os números dos previews são demonstrativos e não representam resultados reais.',
-    preview: '.planner-preview'
+  "smartworking": {
+    "title": "Gestão de Smartworking",
+    "summary": "Solução digital para gestão do modelo de trabalho híbrido, integrando acompanhamento de presença, justificativas, aprovações e indicadores gerenciais.",
+    "context": "O acompanhamento do modelo de trabalho híbrido era realizado por meio de planilhas distribuídas manualmente entre gestores e profissionais de RH.",
+    "solution": "Desenvolvi uma aplicação com Power Apps, SharePoint e Power Automate, integrada a dashboards no Power BI.",
+    "operation": "Os gestores consultam as informações de suas equipes. As justificativas registradas são avaliadas pelos profissionais de RH responsáveis, com aprovação ou reprovação, respeitando o perfil de acesso.",
+    "stages": [
+      "Consulta das equipes",
+      "Justificativas",
+      "Avaliação pelo RH",
+      "Indicadores"
+    ],
+    "features": [
+      "Consulta das informações das equipes pelos respectivos gestores",
+      "Registro de justificativas",
+      "Avaliação e aprovação ou reprovação de justificativas pelos profissionais de RH responsáveis",
+      "Controle de acesso conforme o perfil",
+      "Notificações automatizadas",
+      "Indicadores de presença, cumprimento, ocorrências e tendências"
+    ],
+    "technologies": [
+      "Power Apps",
+      "SharePoint",
+      "Power Automate",
+      "Power BI"
+    ],
+    "result": "Organiza a gestão do modelo híbrido, reúne justificativas e avaliações e disponibiliza indicadores para apoiar o acompanhamento gerencial.",
+    "preview": ".smartworking-preview"
+  },
+  "etl": {
+    "title": "Automação de ETL e Integração de Dados de RH",
+    "summary": "Automação de processos de extração, transformação e consolidação de dados de Recursos Humanos, utilizando Dataflows e Power Query para alimentar relatórios e indicadores.",
+    "context": "Relatórios extraídos manualmente do SAP precisavam passar por processos de preparação e consolidação para serem utilizados em análises de RH.",
+    "solution": "Desenvolvi fluxos reutilizáveis de tratamento de dados com Power BI Service Dataflows e Power Query, padronizando estruturas e consolidando informações provenientes dos relatórios disponibilizados em pastas.",
+    "operation": "A extração inicial dos relatórios do SAP é manual. A partir dos arquivos disponibilizados em pastas, os fluxos tratam e consolidam os dados. Determinados fluxos têm atualização diária programada; outros são atualizados sob demanda.",
+    "stages": [
+      "Extração manual do SAP",
+      "Arquivos em pastas",
+      "Tratamento",
+      "Consolidação",
+      "Relatórios"
+    ],
+    "features": [
+      "Tratamento e padronização de arquivos de origem",
+      "Consolidação de diferentes conjuntos de dados",
+      "Reutilização de consultas e regras de transformação",
+      "Atualizações programadas diariamente em determinados fluxos",
+      "Atualizações sob demanda em outros fluxos",
+      "Disponibilização de dados para dashboards e relatórios destinados ao RH",
+      "Tratamento de temas como horas extras, banco de horas, sobreaviso e irregularidades de jornada"
+    ],
+    "technologies": [
+      "Power Query",
+      "Power BI Dataflows",
+      "Power BI Service",
+      "ETL",
+      "SAP (sistema de origem)"
+    ],
+    "result": "Padroniza a preparação e a consolidação dos dados e permite reutilizar regras de transformação em relatórios e indicadores de RH. A extração inicial do SAP permanece manual.",
+    "preview": ".etl-preview"
+  },
+  "indicadores": {
+    "title": "Central de Indicadores de RH",
+    "summary": "Desenvolvimento de uma solução integrada de Business Intelligence, reunindo dashboards e indicadores de diferentes processos de Recursos Humanos em um aplicativo centralizado no Power BI Service.",
+    "context": "Diferentes processos de RH demandavam análises operacionais e gerenciais organizadas em um ambiente único.",
+    "solution": "Desenvolvi todos os dashboards e indicadores em Power BI, utilizando modelagem de dados, DAX, Power Query e visualizações interativas. Organizei e publiquei os conteúdos em um aplicativo no Power BI Service.",
+    "operation": "O aplicativo organiza a navegação por temas e reúne análises operacionais e gerenciais. Seu acesso é restrito aos profissionais de Recursos Humanos.",
+    "stages": [
+      "Modelagem de dados",
+      "Indicadores",
+      "Visualizações",
+      "Aplicativo no Power BI Service"
+    ],
+    "features": [
+      "Dashboards de atendimentos de segundo nível do HR Support",
+      "Indicadores de headcount, admissões, desligamentos, afastamentos e férias",
+      "Análises de horas extras e sobreaviso",
+      "Indicadores de movimentações de colaboradores",
+      "Indicadores do modelo de trabalho híbrido"
+    ],
+    "technologies": [
+      "Power BI",
+      "DAX",
+      "Power Query",
+      "Modelagem de dados",
+      "Power BI Service"
+    ],
+    "result": "Centraliza indicadores, padroniza as análises e organiza a navegação por temas. Oferece maior autonomia na consulta de informações e apoio ao acompanhamento de resultados, com acesso restrito ao RH.",
+    "preview": ".indicators-preview"
+  },
+  "espaco": {
+    "title": "Planejamento e Simulação de Ocupação",
+    "summary": "Ferramenta web interativa para dimensionamento de capacidade, distribuição de equipes e análise comparativa de cenários, com geração automática de indicadores e relatórios executivos.",
+    "context": "O planejamento da ocupação de espaços corporativos exige considerar capacidade disponível, quantidade de colaboradores, características das equipes e critérios de proximidade operacional.",
+    "solution": "Desenvolvi uma ferramenta web em HTML, CSS e JavaScript que permite construir cenários de ocupação, distribuir equipes entre andares e zonas, ajustar parâmetros e avaliar alternativas de alocação.",
+    "operation": "Os cenários combinam capacidade, equipes e premissas de ocupação, incluindo exceções e absenteísmo. A ferramenta permite distribuir equipes de forma interativa, comparar alternativas e gerar indicadores e relatórios executivos.",
+    "stages": [
+      "Premissas",
+      "Distribuição de equipes",
+      "Simulação",
+      "Comparação",
+      "Relatórios executivos"
+    ],
+    "features": [
+      "Distribuição interativa de equipes",
+      "Dimensionamento de capacidade",
+      "Simulação e comparação de cenários",
+      "Aplicação de premissas de ocupação, exceções e absenteísmo",
+      "Identificação de déficits e capacidade disponível",
+      "Indicadores e relatórios automáticos",
+      "Comparativos e análises executivas"
+    ],
+    "technologies": [
+      "HTML",
+      "CSS",
+      "JavaScript",
+      "Lógica de negócios",
+      "Análise de dados",
+      "Simulação de cenários"
+    ],
+    "result": "A ferramenta está em uso real. Atualmente, realizo as simulações, analiso as projeções e disponibilizo os relatórios às áreas envolvidas.",
+    "preview": ".planner-preview"
   }
 });
 
@@ -35,7 +174,13 @@ function configureContacts() {
   document.querySelectorAll('[data-contact]').forEach(link => {
     const key = link.dataset.contact;
     const value = CONTACTS[key];
-    if (!value) return;
+    if (!value) {
+      link.removeAttribute('href');
+      link.removeAttribute('target');
+      link.removeAttribute('rel');
+      link.setAttribute('aria-disabled', 'true');
+      return;
+    }
     if (key === 'email') link.href = `mailto:${value}`;
     else {
       try { if (new URL(value).protocol !== 'https:') return; } catch { return; }
@@ -45,8 +190,6 @@ function configureContacts() {
     }
     link.removeAttribute('aria-disabled');
   });
-  if (CONTACTS.linkedin && CONTACTS.github) document.querySelector('.contact-pending').hidden = true;
-  if (Object.values(CONTACTS).every(Boolean)) document.querySelector('.contact-links small').hidden = true;
 }
 
 function setupNavigation() {
@@ -150,7 +293,7 @@ function setupProjectDialog() {
     const tags = document.createElement('ul');
     tags.className = 'tags';
     tags.setAttribute('aria-label', 'Tecnologias do projeto');
-    project.technologies.forEach(tech => tags.append(createTextElement('li', tech)));
+    button.closest('.project').querySelectorAll('.tags li').forEach(tag => tags.append(tag.cloneNode(true)));
     content.append(title, summary, tags);
     appendSection('Contexto / Problema', project.context);
     appendSection('Solução', project.solution);
