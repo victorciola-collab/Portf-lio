@@ -25,6 +25,7 @@
   <link rel="icon" href="assets/images/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/css/styles.css">
   <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/analytics.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -208,8 +209,16 @@
       </a>
     </div></div></section>
   </main>
-  <footer class="container footer"><a class="footer-name" href="#inicio">Victor Ciola Rinaldo<span>.</span></a><a href="#inicio">Voltar ao início <span aria-hidden="true">↑</span></a></footer>
+  <footer class="container footer"><a class="footer-name" href="#inicio">Victor Ciola Rinaldo<span>.</span></a><div class="footer-privacy"><button type="button" class="privacy-control" data-consent-review>Preferências de privacidade</button><a class="privacy-link" href="privacidade.html">Política de Privacidade</a></div><a href="#inicio">Voltar ao início <span aria-hidden="true">↑</span></a></footer>
   <dialog id="project-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-summary"><div class="dialog-header"><span class="eyebrow">Detalhes do projeto</span><button class="dialog-close" type="button" aria-label="Fechar detalhes do projeto" autofocus>×</button></div><div id="dialog-content" class="dialog-content"></div></dialog>
+  <aside id="analytics-consent" class="consent-panel" role="region" aria-labelledby="consent-title" tabindex="-1" hidden>
+    <div class="consent-heading"><h2 id="consent-title">Sua privacidade</h2><button type="button" class="consent-close" data-consent-close aria-label="Fechar aviso de privacidade">×</button></div>
+    <p>Este site utiliza análise de tráfego opcional com Google Analytics 4. A coleta começa somente se você aceitar. Você pode recusar ou rever sua escolha no rodapé.</p>
+    <a class="privacy-link" href="privacidade.html">Política de Privacidade</a>
+    <p class="consent-current" data-consent-current></p>
+    <div class="consent-actions"><button type="button" data-consent-choice="accepted">Aceitar</button><button type="button" data-consent-choice="declined">Recusar</button></div>
+  </aside>
+  <p class="privacy-feedback" role="status" aria-live="polite" data-consent-feedback></p>
   <noscript><p class="noscript-notice">Ative o JavaScript para abrir os detalhes dos projetos. O conteúdo e a navegação da página continuam disponíveis.</p></noscript>
 </body>
 </html>

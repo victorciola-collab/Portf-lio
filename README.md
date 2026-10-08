@@ -2,7 +2,7 @@
 
 https://victorciola-collab.github.io/Portf-lio/
 
-Portfólio desenvolvido em HTML, CSS e JavaScript puro, sem frameworks, build, backend, fontes externas ou dependências de terceiros. Identidade minimalista e editorial, com fundo claro, grafite e detalhes em azul.
+Portfólio desenvolvido em HTML, CSS e JavaScript puro, sem frameworks, build, backend ou fontes externas. A tag oficial do Google Analytics 4 é carregada somente após consentimento. Identidade minimalista e editorial, com fundo claro, grafite e detalhes em azul.
 
 ## Executar localmente
 
@@ -12,11 +12,14 @@ Abra `index.html` em um navegador moderno ou sirva a pasta por HTTP. CSS, JavaSc
 
 ```text
 index.html                      Seções, conteúdo e metadados
+privacidade.html                Política e preferências de privacidade
 assets/css/styles.css           Tokens visuais, componentes e responsividade
-assets/js/app.js                 Contatos, catálogo dos cinco projetos e interações
+assets/js/app.js                Contatos, catálogo dos cinco projetos e interações
+assets/js/analytics.js          Consentimento e eventos opcionais do GA4
 assets/images/favicon.svg       Monograma VC.
 assets/images/social-card.png   Imagem social PNG de 1200 × 630 px
-tools/validate.ps1               Validação local em Chrome/Edge
+tools/validate.ps1              Validação local em Chrome/Edge
+tools/validate-analytics.ps1    Testes de consentimento e medição interceptada
 artifacts/                      Capturas e relatórios locais, ignorados pelo Git
 .local-preview/                 Perfil isolado do navegador, ignorado pelo Git
 .gitignore                      Exclusão dos arquivos gerados
@@ -78,6 +81,36 @@ O HTML define canonical, Open Graph e Twitter Card. A imagem social tem 1200 × 
 O site não exige build. Na publicação, configure a origem apropriada no GitHub Pages e preserve `index.html` e `assets/`. O fluxo de publicação não deve copiar perfis de navegador, capturas, relatórios ou arquivos de sessão. As pastas `artifacts/` e `.local-preview/` permanecem ignoradas pelo Git.
 
 A configuração dos metadados e caminhos não publica o site nem altera a privacidade de repositórios. Confirme a autorização de divulgação das descrições corporativas antes de publicar.
+
+## Análise de tráfego opcional
+
+O GA4 utiliza o ID público `G-TPV93SY9ZY`. Antes de aceitar, nenhum script ou evento do Analytics é carregado. Aceitar inicia uma tag e um `page_view` por documento; recusar mantém a medição desativada. A escolha fica em `localStorage` e pode ser revista no rodapé ou na política. Revogar desativa a tag, remove seus cookies e recarrega a página. Se o navegador bloquear a gravação, a preferência vale apenas na página atual; uma escolha anterior poderá voltar na atualização, conforme o aviso exibido.
+
+A medição funciona em HTTP/HTTPS, inclusive em `/Portf-lio/`; abrir o HTML por `file://` não carrega o Analytics. Os cookies têm prefixo `portfolio`, caminho do portfólio e duração de 180 dias. Google Signals e personalização publicitária estão desativados; os consentimentos publicitários permanecem negados. A coleta não é apresentada como totalmente anônima.
+
+Eventos controlados pelo site:
+
+- `page_view`: uma vez ao iniciar a medição por documento, sem contar âncoras.
+- `project_view`: abertura efetiva de um dos cinco modais, com `project_id` e `project_name`.
+- `contact_click`: clique em contato ativo, com `contact_channel`. GitHub sem direcionamento não gera evento.
+
+Os eventos não enviam endereços de contato ou nomes de visitantes. URLs de página e referência excluem parâmetros e fragmentos. A política descreve os dados de navegação processados pelo Google.
+
+**Configuração necessária no painel do GA4:** em Administrador → Fluxos de dados → fluxo Web, desative a **Medição otimizada** para evitar eventos automáticos de cliques externos e mudanças no histórico além dos eventos controlados pelo site. `send_page_view: false` não desativa sozinho os eventos de histórico dessa configuração. Essa preferência pertence à propriedade GA4 e não pode ser alterada pelo código do portfólio. Consulte a [documentação oficial de visualizações](https://developers.google.com/analytics/devguides/collection/ga4/views).
+
+Para testar sem registrar visitas reais:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate-analytics.ps1
+```
+
+Esse teste serve o site sob `/Portf-lio/`, usa um perfil isolado e substitui o transporte do Analytics para conferir consentimento, persistência, revogação, cookies, teclado, eventos e seis larguras. Requisições de medição são interceptadas. A opção abaixo executa o JavaScript oficial, mantendo todos os envios interceptados:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate-analytics.ps1 -RealTag
+```
+
+Nenhum desses testes confirma recebimento nos relatórios do GA4. Essa conferência deverá ocorrer no ambiente publicado, após autorização e consentimento.
 
 ## Validação
 

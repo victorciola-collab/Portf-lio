@@ -315,6 +315,7 @@ function setupProjectDialog() {
     visual.append(document.querySelector(project.preview).cloneNode(true));
     document.body.classList.add('modal-open');
     dialog.showModal(); // O dialog nativo torna o restante da página inerte.
+    document.dispatchEvent(new CustomEvent('portfolio:project-view', { detail: { project_id: button.dataset.project, project_name: project.title } }));
     dialog.scrollTop = 0;
     dialog.querySelector('.dialog-close').focus({ preventScroll: true });
   }
