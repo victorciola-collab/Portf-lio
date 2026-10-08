@@ -818,7 +818,7 @@ h1 span
 {
   display:block;
   font-size:8px;
-  color:#6b7890;
+  color:var(--muted);
   margin-top:2px;
 }
 .stage-label
@@ -837,7 +837,7 @@ h1 span
   padding-top:13px;
   border-top:1px solid #e9edf3;
   font-size:8px;
-  color:#6b7890;
+  color:var(--muted);
   display:flex;
   gap:7px;
   align-items:center;
@@ -984,7 +984,7 @@ h1 span
   align-items:center;
   gap:13px;
   font-size:7px;
-  color:#6c7890;
+  color:var(--muted);
   flex-wrap:wrap;
 }
 .floor-legend span

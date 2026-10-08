@@ -1,4 +1,4 @@
-﻿param([int]$Port = 9228)
+﻿param([int]$Port = 9228, [string]$PageUrl = '')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $browser = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
@@ -10,6 +10,7 @@ $browserProcess = Start-Process -FilePath $browser -WindowStyle Hidden -Argument
 $socket = [System.Net.WebSockets.ClientWebSocket]::new()
 $script:messageId = 0
 $script:browserErrors = [System.Collections.Generic.List[string]]::new()
+$projectKeys = @('movimentacoes','smartworking','etl','indicadores','espaco')
 function Send-CDP([string]$method, $parameters = @{}) {
   $script:messageId++
   $id = $script:messageId
@@ -50,16 +51,19 @@ function Screenshot([string]$name, [bool]$full = $false) {
 }
 try {
   for ($attempt = 0; $attempt -lt 30; $attempt++) {
-    try { $targets = Invoke-RestMethod "http://localhost:$Port/json"; break } catch { Start-Sleep -Milliseconds 200 }
+    try { $targets = Invoke-RestMethod "http://localhost:$Port/json" -TimeoutSec 2; break } catch { Start-Sleep -Milliseconds 200 }
   }
   $target = $targets | Where-Object type -eq 'page' | Select-Object -First 1
   $socket.ConnectAsync([Uri]$target.webSocketDebuggerUrl, [Threading.CancellationToken]::None).GetAwaiter().GetResult() | Out-Null
   Send-CDP 'Page.enable' | Out-Null
   Send-CDP 'Runtime.enable' | Out-Null
   Send-CDP 'Page.bringToFront' | Out-Null
-  $pageUrl = ([Uri](Join-Path $projectRoot 'index.html')).AbsoluteUri
+  if (!$PageUrl) { $PageUrl = ([Uri](Join-Path $projectRoot 'index.html')).AbsoluteUri }
+  Add-Type -AssemblyName System.Drawing
+  $socialImage = [Drawing.Image]::FromFile((Join-Path $projectRoot 'assets/images/social-card.png'))
+  try { $socialDimensions = $socialImage.Width -eq 1200 -and $socialImage.Height -eq 630 } finally { $socialImage.Dispose() }
   $results = [System.Collections.Generic.List[object]]::new()
-  foreach ($size in @(@{name='desktop';width=1440;height=1000},@{name='tablet';width=768;height=1024},@{name='mobile';width=390;height=844},@{name='small-mobile';width=320;height=740})) {
+  foreach ($size in @(@{name='wide-desktop';width=1920;height=1000},@{name='desktop';width=1440;height=1000},@{name='small-desktop';width=1024;height=900},@{name='tablet';width=768;height=1024},@{name='mobile';width=390;height=844},@{name='small-mobile';width=320;height=740})) {
     Send-CDP 'Emulation.setDeviceMetricsOverride' @{width=$size.width;height=$size.height;deviceScaleFactor=1;mobile=$false} | Out-Null
     Send-CDP 'Page.navigate' @{url=$pageUrl} | Out-Null
     Start-Sleep -Milliseconds 700
@@ -74,7 +78,10 @@ JSON.stringify({
  h1:document.querySelectorAll('h1').length,
  smooth:getComputedStyle(document.documentElement).scrollBehavior==='smooth',
  stylesLoaded:!!document.styleSheets[0]?.cssRules.length,
- missingContacts:[...document.querySelectorAll('[data-contact]')].every(a=>!a.hasAttribute('href')&&a.getAttribute('aria-disabled')==='true'),
+ contactsValid:document.querySelectorAll('[data-contact]').length===6 && [...document.querySelectorAll('[data-contact]')].every(e=>e.dataset.contact==='github'?e.tagName==='SPAN'&&!e.hasAttribute('href')&&!e.hasAttribute('target')&&e.tabIndex===-1&&e.getAttribute('aria-disabled')==='true':e.dataset.contact==='linkedin'?e.href==='https://www.linkedin.com/in/victorciolarinaldo'&&e.target==='_blank'&&e.rel==='noopener noreferrer':e.dataset.contact==='email'&&e.href==='mailto:victorciola@gmail.com'),
+ metadata:[['canonical','https://victorciola-collab.github.io/Portf-lio/'],['og:url','https://victorciola-collab.github.io/Portf-lio/'],['og:type','website'],['og:image','https://victorciola-collab.github.io/Portf-lio/assets/images/social-card.png'],['twitter:image','https://victorciola-collab.github.io/Portf-lio/assets/images/social-card.png'],['twitter:card','summary_large_image']].every(([key,value])=>key==='canonical'?document.querySelector('link[rel=canonical]')?.href===value:document.querySelector('meta[property="'+key+'"],meta[name="'+key+'"]')?.content===value) && document.title==='Victor Ciola Rinaldo | Portfólio Profissional' && !!document.querySelector('meta[property="og:image:alt"]') && !!document.querySelector('meta[name="twitter:image:alt"]'),
+ projectTags:document.querySelectorAll('.project .tags li').length===26 && [...document.querySelectorAll('.project')].every(e=>[...e.querySelectorAll('.tags li')].map(t=>t.textContent).join('|')===PROJECTS[e.querySelector('[data-project]').dataset.project].technologies.join('|')),
+ microtextContrast:[...document.querySelectorAll('.workflow small,.mock-foot,.floor-legend')].every(e=>getComputedStyle(e).color==='rgb(93, 104, 120)'),
  duplicateIds:[...document.querySelectorAll('[id]')].map(e=>e.id).filter((id,i,all)=>all.indexOf(id)!==i)
 })
 '@
@@ -82,11 +89,11 @@ JSON.stringify({
     $record | Add-Member name $size.name
     Evaluate "document.querySelectorAll('.reveal-ready').forEach(e=>e.classList.add('is-visible')); document.querySelectorAll('*').forEach(e=>e.style.transition='none');" | Out-Null
     Screenshot $size.name $true
-    foreach ($projectKey in @('movimentacoes','espaco')) {
+    foreach ($projectKey in $projectKeys) {
       Evaluate "document.querySelector('[data-project=$projectKey]').focus();" | Out-Null
       Key 'Enter' 13
       $modal = Evaluate @'
-JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.querySelector('dialog').contains(document.activeElement),locked:getComputedStyle(document.body).overflow==='hidden',overflow:document.querySelector('dialog').scrollWidth>document.querySelector('dialog').clientWidth,sections:document.querySelectorAll('.case-block').length})
+JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.querySelector('dialog').contains(document.activeElement),locked:getComputedStyle(document.body).overflow==='hidden',overflow:document.querySelector('dialog').scrollWidth>document.querySelector('dialog').clientWidth,sections:document.querySelectorAll('.case-block').length,tagsMatch:[...document.querySelectorAll('.project')].some(p=>p.querySelector('h3').textContent===document.querySelector('#dialog-title').textContent&&p.querySelector('.tags').innerHTML===document.querySelector('dialog .tags').innerHTML)})
 '@
       $modalRecord = $modal | ConvertFrom-Json
       Key 'Tab' 9
@@ -102,6 +109,12 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
       Evaluate "document.querySelector('[data-project=$projectKey]').click();document.querySelector('.dialog-close').click();" | Out-Null
       Start-Sleep -Milliseconds 100
       $modalRecord | Add-Member buttonCloses (Evaluate "!document.querySelector('dialog').open")
+      Evaluate "document.querySelector('[data-project=$projectKey]').click();" | Out-Null
+      Send-CDP 'Input.dispatchMouseEvent' @{type='mousePressed';x=2;y=2;button='left';clickCount=1} | Out-Null
+      Send-CDP 'Input.dispatchMouseEvent' @{type='mouseReleased';x=2;y=2;button='left';clickCount=1} | Out-Null
+      Start-Sleep -Milliseconds 100
+      $modalRecord | Add-Member backdropCloses (Evaluate "!document.querySelector('dialog').open && document.activeElement.dataset.project==='$projectKey'")
+      if (Evaluate "document.querySelector('dialog').open") { Evaluate "document.querySelector('dialog').close();" | Out-Null; Start-Sleep -Milliseconds 100 }
       $record | Add-Member $projectKey $modalRecord
     }
     if ($size.width -le 800) {
@@ -114,11 +127,16 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
       $record | Add-Member menuEscCloses (Evaluate "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'")
       Evaluate 'document.querySelector(".menu-toggle").click();document.querySelector("nav a[href=''#projetos'']").click();' | Out-Null
       $record | Add-Member menuLinkCloses (Evaluate "document.querySelector('.menu-toggle').getAttribute('aria-expanded')==='false'")
+      # Aguarda a navegação do menu antes de iniciar outra rolagem suave.
+      Start-Sleep -Milliseconds 1000
     } else {
       $record | Add-Member desktopMenuVisible (Evaluate "getComputedStyle(document.querySelector('nav')).display==='flex'")
     }
     Evaluate 'document.querySelector("a[href=''#projetos''].button").click();' | Out-Null
-    Start-Sleep -Milliseconds 900
+    for ($scrollAttempt = 0; $scrollAttempt -lt 40; $scrollAttempt++) {
+      Start-Sleep -Milliseconds 100
+      if (Evaluate "Math.abs(document.querySelector('#projetos').getBoundingClientRect().top-parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop))<4") { break }
+    }
     Screenshot "$($size.name)-scroll"
     $record | Add-Member scrollPosition (Evaluate "JSON.stringify({y:scrollY,top:document.querySelector('#projetos').getBoundingClientRect().top,padding:getComputedStyle(document.documentElement).scrollPaddingTop})")
     $record | Add-Member projectScroll (Evaluate "location.hash==='#projetos' && Math.abs(document.querySelector('#projetos').getBoundingClientRect().top-parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop))<4")
@@ -126,7 +144,7 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
     $record | Add-Member siteSections (Evaluate "[...document.querySelectorAll('main > section')].map(e=>e.id).join(',')==='inicio,sobre,solucoes,projetos,contato'")
     $record | Add-Member menuSections (Evaluate "[...document.querySelectorAll('nav a')].map(e=>e.textContent.trim().replace(' ↗','')).join(',')==='Início,Sobre,Soluções,Projetos,Contato'")
     $record | Add-Member sectionNumbers (Evaluate "[...document.querySelectorAll('main > section:not(#inicio)')].map(e=>e.querySelector('.eyebrow').textContent.trim().toUpperCase()).join(',')==='01 / SOBRE,02 / SOLUÇÕES,03 / PROJETOS,04 / CONTATO'")
-    $record | Add-Member techIcons (Evaluate "document.querySelectorAll('.tech-icon svg').length===13 && !document.querySelector('.solution-technologies img') && [...document.querySelectorAll('.tech-icon svg')].every(icon=>getComputedStyle(icon).stroke==='rgb(36, 91, 219)' && icon.getBoundingClientRect().width===18 && icon.getBoundingClientRect().height===18)")
+    $record | Add-Member techIcons (Evaluate "document.querySelectorAll('.solution-technologies .tech-icon svg').length===13 && document.querySelectorAll('.project .tags .tech-icon svg').length===21 && !document.querySelector('.solution-technologies img') && [...document.querySelectorAll('main .tech-icon svg')].every(icon=>getComputedStyle(icon).stroke==='rgb(36, 91, 219)' && icon.getBoundingClientRect().width===18 && icon.getBoundingClientRect().height===18)")
     $record | Add-Member technologyTags (Evaluate "[...document.querySelectorAll('.solution-technologies')].map(list=>[...list.querySelectorAll('.tech-tag > span:last-child')].map(e=>e.textContent).join(',')).join(';')==='Power BI,DAX,Excel;Power Query,SQL,Python;Power Apps,Power Automate,SharePoint,JavaScript,HTML / CSS,VBA,Git / GitHub' && document.querySelectorAll('.tech-tag').length===13 && [...document.querySelectorAll('.tech-tag')].every(e=>e.offsetHeight===32 && getComputedStyle(e).animationName==='none' && e.getBoundingClientRect().right<=e.parentElement.getBoundingClientRect().right+1)")
     $record | Add-Member solutionPillars (Evaluate "[...document.querySelectorAll('.solution h3')].map(e=>e.textContent).join(',')==='Analytics,Data Preparation & ETL,Automation & Applications' && document.querySelectorAll('.solution').length===3")
     foreach ($sectionId in @('sobre','solucoes')) {
@@ -148,24 +166,25 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
   }
   Send-CDP 'Emulation.setEmulatedMedia' @{features=@(@{name='prefers-reduced-motion';value='reduce'})} | Out-Null
   $reduced = Evaluate "getComputedStyle(document.documentElement).scrollBehavior==='auto' && [...document.querySelectorAll('.reveal-ready')].every(e=>getComputedStyle(e).opacity==='1')"
-  $report = @{viewports=$results;reducedMotion=$reduced;runtimeErrors=$script:browserErrors}
+  $report = @{pageUrl=$PageUrl;viewports=$results;socialDimensions=$socialDimensions;reducedMotion=$reduced;runtimeErrors=$script:browserErrors}
   $failures = [System.Collections.Generic.List[string]]::new()
   foreach ($row in $results) {
-    foreach ($check in @('linksValid','smooth','stylesLoaded','missingContacts','projectScroll','activeNav','skipLinkFocus','siteSections','menuSections','sectionNumbers','techIcons','technologyTags','solutionPillars','contactNavigation')) {
+    foreach ($check in @('linksValid','smooth','stylesLoaded','contactsValid','metadata','projectTags','microtextContrast','projectScroll','activeNav','skipLinkFocus','siteSections','menuSections','sectionNumbers','techIcons','technologyTags','solutionPillars','contactNavigation')) {
       if (!$row.$check) { $failures.Add("$($row.name): $check") }
     }
-    if ($row.overflow -or $row.duplicateIds.Count -or $row.projectCount -ne 2) { $failures.Add("$($row.name): estrutura ou overflow") }
+    if ($row.overflow -or $row.duplicateIds.Count -or $row.projectCount -ne 5 -or $row.h1 -ne 1) { $failures.Add("$($row.name): estrutura ou overflow") }
     if ($row.width -le 800) {
       foreach ($check in @('menuOpens','menuEscCloses','menuLinkCloses')) { if (!$row.$check) { $failures.Add("$($row.name): $check") } }
     } elseif (!$row.desktopMenuVisible) { $failures.Add('Menu desktop') }
-    foreach ($projectKey in @('movimentacoes','espaco')) {
+    foreach ($projectKey in $projectKeys) {
       $modal = $row.$projectKey
-      foreach ($check in @('open','focusInside','locked','tabContained','shiftTabContained','escCloses','focusRestored','scrollRestored','buttonCloses')) {
+      foreach ($check in @('open','focusInside','locked','tabContained','shiftTabContained','escCloses','focusRestored','scrollRestored','buttonCloses','backdropCloses','tagsMatch')) {
         if (!$modal.$check) { $failures.Add("$($row.name), ${projectKey}: $check") }
       }
       if ($modal.overflow) { $failures.Add("$($row.name), ${projectKey}: overflow") }
     }
   }
+  if (!$socialDimensions) { $failures.Add('Imagem social: dimensões diferentes de 1200 x 630') }
   if (!$reduced) { $failures.Add('Redução de movimento') }
   if ($script:browserErrors.Count) { $failures.Add('Erros JavaScript') }
   $report.passed = $failures.Count -eq 0
@@ -174,8 +193,7 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
   $report | ConvertTo-Json -Depth 10
   if ($failures.Count) { throw ($failures -join '; ') }
 } finally {
-  if ($socket.State -eq [System.Net.WebSockets.WebSocketState]::Open) {
-    try { Send-CDP 'Browser.close' | Out-Null } catch {}
-  }
   $socket.Dispose()
+  # Encerra somente o processo headless iniciado por este validador.
+  if ($browserProcess -and !$browserProcess.HasExited) { $browserProcess.Kill() }
 }
