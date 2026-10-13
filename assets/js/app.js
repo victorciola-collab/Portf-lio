@@ -14,7 +14,7 @@ const PROJECTS = Object.freeze({
   "movimentacoes": {
     "title": "Gestão de Movimentações de Colaboradores",
     "summary": "Aplicação desenvolvida com Power Apps para digitalizar solicitações de movimentação de colaboradores, estruturando fluxos de aprovação, controles de acesso e notificações automatizadas.",
-    "context": "O processo de movimentações de colaboradores dependia de trocas de e-mails e controles descentralizados em planilhas, dificultando o acompanhamento das solicitações e das aprovações.",
+    "context": "As solicitações eram registradas em um formulário SharePoint, enquanto as aprovações eram solicitadas por e-mail, sem um fluxo estruturado de aprovação.",
     "solution": "Desenvolvi uma aplicação utilizando Power Apps, Power Fx, SharePoint Lists e Power Automate para centralizar as solicitações e organizar o fluxo de aprovações entre as áreas responsáveis.",
     "operation": "As solicitações são cadastradas e acompanhadas na aplicação. As aprovações seguem condições e etapas, com acesso conforme perfil e responsabilidade, devoluções para ajustes e notificações automatizadas.",
     "stages": [
@@ -42,28 +42,54 @@ const PROJECTS = Object.freeze({
       "Power BI",
       "Power Query"
     ],
-    "result": "A aplicação está em produção. Centraliza as solicitações, organiza as aprovações e permite acompanhar o histórico das movimentações.",
+    "result": "A solução transformou um processo de aprovações conduzido por e-mails em um fluxo estruturado, com etapas, responsáveis e regras definidas.",
+    "benefits": [
+      "Com a centralização das solicitações e o registro das decisões, o processo ganhou maior padronização, visibilidade e rastreabilidade.",
+      "Em operação desde abril de 2022, a aplicação passou a apoiar continuamente a gestão das movimentações de colaboradores."
+    ],
+    "kpis": [
+      {
+        "title": "Operação contínua",
+        "value": "Desde 2022",
+        "description": "Solução em operação desde abril de 2022.",
+        "icon": "calendar"
+      },
+      {
+        "title": "Acompanhamento",
+        "value": "Status por etapa",
+        "description": "Visibilidade sobre o andamento das solicitações e suas etapas de aprovação.",
+        "icon": "tracking"
+      },
+      {
+        "title": "Fluxo estruturado",
+        "value": "Aprovações organizadas",
+        "description": "Etapas, responsáveis e regras de aprovação definidos.",
+        "icon": "workflow"
+      },
+      {
+        "title": "Rastreabilidade",
+        "value": "Histórico centralizado",
+        "description": "Registro de status, responsáveis, decisões e observações.",
+        "icon": "history"
+      }
+    ],
     "preview": ".movement-preview"
   },
   "smartworking": {
     "title": "Gestão de Smartworking",
-    "summary": "Solução digital para gestão do modelo de trabalho híbrido, integrando acompanhamento de presença, justificativas, aprovações e indicadores gerenciais.",
+    "summary": "Solução digital para gestão do modelo de trabalho híbrido, integrando informações, automatizando processos e disponibilizando indicadores gerenciais para apoiar a tomada de decisão.",
     "context": "O acompanhamento do modelo de trabalho híbrido era realizado por meio de planilhas distribuídas manualmente entre gestores e profissionais de RH.",
     "solution": "Desenvolvi uma aplicação com Power Apps, SharePoint e Power Automate, integrada a dashboards no Power BI.",
-    "operation": "Os gestores consultam as informações de suas equipes. As justificativas registradas são avaliadas pelos profissionais de RH responsáveis, com aprovação ou reprovação, respeitando o perfil de acesso.",
+    "operation": "A aplicação centraliza informações do modelo híbrido para consulta pelos gestores e profissionais de RH, respeitando os perfis de acesso e disponibilizando indicadores gerenciais.",
     "stages": [
-      "Consulta das equipes",
-      "Justificativas",
-      "Avaliação pelo RH",
+      "Consulta das informações",
       "Indicadores"
     ],
     "features": [
-      "Consulta das informações das equipes pelos respectivos gestores",
-      "Registro de justificativas",
-      "Avaliação e aprovação ou reprovação de justificativas pelos profissionais de RH responsáveis",
+      "Consulta de informações do modelo híbrido pelos gestores",
       "Controle de acesso conforme o perfil",
       "Notificações automatizadas",
-      "Indicadores de presença, cumprimento, ocorrências e tendências"
+      "Indicadores gerenciais para acompanhamento do modelo de trabalho híbrido"
     ],
     "technologies": [
       "Power Apps",
@@ -71,12 +97,43 @@ const PROJECTS = Object.freeze({
       "Power Automate",
       "Power BI"
     ],
-    "result": "Organiza a gestão do modelo híbrido, reúne justificativas e avaliações e disponibiliza indicadores para apoiar o acompanhamento gerencial.",
+    "result": "A solução substituiu a circulação de múltiplas planilhas por um ambiente centralizado de informações e acompanhamento do modelo de trabalho híbrido.",
+    "benefits": [
+      "A padronização das informações e a eliminação da consolidação manual dos arquivos reduziram o trabalho operacional mensal de preparação e consolidação de dados.",
+      "Além da economia estimada de tempo, o aplicativo trouxe maior rastreabilidade das decisões, organização do processo e disponibilidade de indicadores para acompanhamento gerencial."
+    ],
+    // Estimativas retrospectivas informadas pelo responsável, sem medição formal.
+    "kpis": [
+      {
+        "title": "Economia mensal",
+        "value": "13–22 h",
+        "description": "Economia mensal estimada de trabalho operacional.",
+        "icon": "clock"
+      },
+      {
+        "title": "Redução de esforço",
+        "value": "~85%",
+        "description": "Redução estimada do esforço de preparação e consolidação.",
+        "icon": "trend-down"
+      },
+      {
+        "title": "Centralização",
+        "value": "Base centralizada",
+        "description": "Eliminação da necessidade de reunir diferentes versões de planilhas.",
+        "icon": "database"
+      },
+      {
+        "title": "Rastreabilidade",
+        "value": "Aprovações rastreáveis",
+        "description": "Decisões registradas diretamente na aplicação.",
+        "icon": "history"
+      }
+    ],
     "preview": ".smartworking-preview"
   },
   "etl": {
     "title": "Automação de ETL e Integração de Dados de RH",
-    "summary": "Automação de processos de extração, transformação e consolidação de dados de Recursos Humanos, utilizando Dataflows e Power Query para alimentar relatórios e indicadores.",
+    "summary": "Automação do tratamento, transformação, padronização, integração e consolidação de dados de Recursos Humanos com Power Query e Dataflows, para alimentar relatórios e indicadores.",
     "context": "Relatórios extraídos manualmente do SAP precisavam passar por processos de preparação e consolidação para serem utilizados em análises de RH.",
     "solution": "Desenvolvi fluxos reutilizáveis de tratamento de dados com Power BI Service Dataflows e Power Query, padronizando estruturas e consolidando informações provenientes dos relatórios disponibilizados em pastas.",
     "operation": "A extração inicial dos relatórios do SAP é manual. A partir dos arquivos disponibilizados em pastas, os fluxos tratam e consolidam os dados. Determinados fluxos têm atualização diária programada; outros são atualizados sob demanda.",
@@ -103,13 +160,40 @@ const PROJECTS = Object.freeze({
       "ETL",
       "SAP (sistema de origem)"
     ],
-    "result": "Padroniza a preparação e a consolidação dos dados e permite reutilizar regras de transformação em relatórios e indicadores de RH. A extração inicial do SAP permanece manual.",
+    "resultHeading": "Impacto e benefícios",
+    "result": "Fluxos reutilizáveis de transformação e integração padronizaram os dados e reduziram o esforço manual nas atualizações dos relatórios de RH.",
+    "kpis": [
+      {
+        "title": "Economia mensal",
+        "value": "~7–8 h/mês",
+        "description": "Economia mensal estimada de trabalho manual.",
+        "icon": "clock"
+      },
+      {
+        "title": "Redução de esforço",
+        "value": "75%–85%",
+        "description": "Redução estimada do esforço manual por atualização.",
+        "icon": "trend-down"
+      },
+      {
+        "title": "Automação",
+        "value": "Tratamento automatizado",
+        "description": "Transformações e integrações executadas por fluxos reutilizáveis.",
+        "icon": "workflow"
+      },
+      {
+        "title": "Padronização",
+        "value": "Dados padronizados",
+        "description": "Regras consistentes para atualização dos relatórios de RH.",
+        "icon": "database"
+      }
+    ],
     "preview": ".etl-preview"
   },
   "indicadores": {
     "title": "Central de Indicadores de RH",
     "summary": "Desenvolvimento de uma solução integrada de Business Intelligence, reunindo dashboards e indicadores de diferentes processos de Recursos Humanos em um aplicativo centralizado no Power BI Service.",
-    "context": "Diferentes processos de RH demandavam análises operacionais e gerenciais organizadas em um ambiente único.",
+    "context": "Antes da solução, não havia um ambiente permanente para consultar os indicadores de RH. As informações eram organizadas em apresentações conforme surgiam necessidades específicas.",
     "solution": "Desenvolvi todos os dashboards e indicadores em Power BI, utilizando modelagem de dados, DAX, Power Query e visualizações interativas. Organizei e publiquei os conteúdos em um aplicativo no Power BI Service.",
     "operation": "O aplicativo organiza a navegação por temas e reúne análises operacionais e gerenciais. Seu acesso é restrito aos profissionais de Recursos Humanos.",
     "stages": [
@@ -132,13 +216,40 @@ const PROJECTS = Object.freeze({
       "Modelagem de dados",
       "Power BI Service"
     ],
-    "result": "Centraliza indicadores, padroniza as análises e organiza a navegação por temas. Oferece maior autonomia na consulta de informações e apoio ao acompanhamento de resultados, com acesso restrito ao RH.",
+    "resultHeading": "Resultados e benefícios",
+    "result": "A Central de Indicadores reúne dashboards de diferentes temas de RH em um ambiente permanente de consulta, com visualizações interativas e acesso direto pelas áreas.",
+    "kpis": [
+      {
+        "title": "Abrangência",
+        "value": "7 dashboards",
+        "description": "Painéis que abrangem diferentes temas e processos de RH.",
+        "icon": "dashboard"
+      },
+      {
+        "title": "Disponibilidade",
+        "value": "Consulta permanente",
+        "description": "Indicadores disponíveis independentemente de apresentações pontuais.",
+        "icon": "calendar"
+      },
+      {
+        "title": "Experiência de análise",
+        "value": "Exploração interativa",
+        "description": "Filtros e visualizações para consultar diferentes recortes dos dados.",
+        "icon": "chart"
+      },
+      {
+        "title": "Acessibilidade",
+        "value": "Acesso direto",
+        "description": "Áreas de RH podem consultar os painéis sem solicitar relatórios específicos.",
+        "icon": "access"
+      }
+    ],
     "preview": ".indicators-preview"
   },
   "espaco": {
     "title": "Planejamento e Simulação de Ocupação",
     "summary": "Ferramenta web interativa para dimensionamento de capacidade, distribuição de equipes e análise comparativa de cenários, com geração automática de indicadores e relatórios executivos.",
-    "context": "O planejamento da ocupação de espaços corporativos exige considerar capacidade disponível, quantidade de colaboradores, características das equipes e critérios de proximidade operacional.",
+    "context": "Uma necessidade específica de planejamento exigia comparar propostas de distribuição das equipes, considerando a capacidade dos espaços e os critérios de proximidade operacional. A ferramenta foi desenvolvida para explorar essas alternativas de ocupação.",
     "solution": "Desenvolvi uma ferramenta web em HTML, CSS e JavaScript que permite construir cenários de ocupação, distribuir equipes entre andares e zonas, ajustar parâmetros e avaliar alternativas de alocação.",
     "operation": "Os cenários combinam capacidade, equipes e premissas de ocupação, incluindo exceções e absenteísmo. A ferramenta permite distribuir equipes de forma interativa, comparar alternativas e gerar indicadores e relatórios executivos.",
     "stages": [
@@ -165,7 +276,34 @@ const PROJECTS = Object.freeze({
       "Análise de dados",
       "Simulação de cenários"
     ],
-    "result": "A ferramenta está em uso real. Atualmente, realizo as simulações, analiso as projeções e disponibilizo os relatórios às áreas envolvidas.",
+    "resultHeading": "Resultados e benefícios",
+    "result": "A ferramenta permite construir e comparar cenários de ocupação, avaliar a capacidade dos espaços e organizar os resultados para apoiar o planejamento.",
+    "kpis": [
+      {
+        "title": "Planejamento",
+        "value": "Múltiplos cenários",
+        "description": "Possibilidade de testar diferentes distribuições de equipes e espaços.",
+        "icon": "layers"
+      },
+      {
+        "title": "Dimensionamento",
+        "value": "Déficits e capacidade",
+        "description": "Identificação de vagas disponíveis, excedentes e necessidades de alocação.",
+        "icon": "building"
+      },
+      {
+        "title": "Avaliação",
+        "value": "Impacto das mudanças",
+        "description": "Recálculo dos indicadores conforme as alocações são ajustadas.",
+        "icon": "comparison"
+      },
+      {
+        "title": "Comunicação",
+        "value": "Visão executiva",
+        "description": "Comparativos e relatórios estruturados para apresentação das propostas.",
+        "icon": "presentation"
+      }
+    ],
     "preview": ".planner-preview"
   }
 });
@@ -309,7 +447,48 @@ function setupProjectDialog() {
     project.features.forEach(feature => list.append(createTextElement('li', feature)));
     features.append(list);
     content.append(features);
-    appendSection('Resultado e benefícios', project.result);
+    const results = appendSection(project.resultHeading || 'Resultados e benefícios', project.result);
+    if (project.kpis) {
+      results.classList.add('case-results');
+      const icons = {
+        calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/>',
+        tracking: '<circle cx="5" cy="5" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="5" cy="19" r="2"/><path d="M5 7v3M5 14v3M10 5h11M10 12h11M10 19h11"/>',
+        database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.7 4 3 9 3s9-1.3 9-3V5M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/>',
+        workflow: '<rect x="9" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="15" width="6" height="6" rx="1.5"/><rect x="15" y="15" width="6" height="6" rx="1.5"/><path d="M12 9v3M6 15v-3h12v3"/>',
+        history: '<path d="M3 11a9 9 0 1 1 2.6 7.4M3 4v7h7M12 7v5l3 2"/>',
+        clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        'trend-down': '<path d="m3 6 6 6 4-4 8 10M15 18h6v-6"/>',
+        refresh: '<path d="M20 7a9 9 0 0 0-15-2L3 7M3 3v4h4M4 17a9 9 0 0 0 15 2l2-2M21 21v-4h-4"/>',
+        layers: '<path d="m12 3 10 5-10 5L2 8l10-5ZM2 12l10 5 10-5M2 16l10 5 10-5"/>',
+        dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+        chart: '<path d="M4 3v17h17M8 16v-5M13 16V6M18 16V9"/>',
+        access: '<path d="M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5M3 12h12M10 7l5 5-5 5"/>',
+        building: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-6h4v6"/>',
+        controls: '<path d="M3 6h8M15 6h6M3 12h2M9 12h12M3 18h12M19 18h2"/><circle cx="13" cy="6" r="2"/><circle cx="7" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
+        comparison: '<path d="M3 7h18M17 3l4 4-4 4M21 17H3M7 13l-4 4 4 4"/>',
+        presentation: '<rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v5M7 21h10M7 12V9M12 12V7M17 12v-2"/>'
+      };
+      const kpis = document.createElement('dl');
+      kpis.className = 'case-kpis';
+      kpis.setAttribute('aria-label', 'Indicadores e benefícios do projeto');
+      project.kpis.filter(kpi => kpi.enabled !== false).forEach(kpi => {
+        const item = document.createElement('div');
+        item.className = 'case-kpi';
+        const label = createTextElement('dt', kpi.title, 'case-kpi-title');
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.setAttribute('focusable', 'false');
+        icon.innerHTML = icons[kpi.icon]; // SVGs locais e fixos, sem conteúdo externo.
+        label.prepend(icon);
+        item.append(label, createTextElement('dd', kpi.value, 'case-kpi-value'), createTextElement('dd', kpi.description, 'case-kpi-description'));
+        kpis.append(item);
+      });
+      results.append(kpis);
+    }
+    if (project.resultsNote) results.append(createTextElement('p', project.resultsNote, 'case-results-note'));
+    project.benefits?.forEach(benefit => results.append(createTextElement('p', benefit)));
+    if (['movimentacoes', 'smartworking', 'etl', 'indicadores', 'espaco'].includes(button.dataset.project)) tags.after(results);
     const visual = appendSection('Screenshots / Preview conceitual', 'Preview conceitual, sem dados corporativos. Screenshots definitivos ainda não foram incluídos.');
     visual.classList.add('case-visual');
     visual.append(document.querySelector(project.preview).cloneNode(true));
