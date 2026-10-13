@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $browser = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 if (!(Test-Path -LiteralPath $browser)) { $browser = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' }
-$profile = Join-Path $projectRoot '.local-preview'
+$profile = Join-Path $projectRoot ".local-preview/validation-$Port"
 $outputDir = Join-Path $projectRoot 'artifacts'
 New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
 $browserProcess = Start-Process -FilePath $browser -WindowStyle Hidden -ArgumentList @('--headless=new', '--disable-gpu', '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding', '--no-first-run', '--no-default-browser-check', '--allow-file-access-from-files', "--remote-debugging-port=$Port", "--user-data-dir=`"$profile`"", 'about:blank') -PassThru
@@ -96,11 +96,82 @@ JSON.stringify({
 JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.querySelector('dialog').contains(document.activeElement),locked:getComputedStyle(document.body).overflow==='hidden',overflow:document.querySelector('dialog').scrollWidth>document.querySelector('dialog').clientWidth,sections:document.querySelectorAll('.case-block').length,tagsMatch:[...document.querySelectorAll('.project')].some(p=>p.querySelector('h3').textContent===document.querySelector('#dialog-title').textContent&&p.querySelector('.tags').innerHTML===document.querySelector('dialog .tags').innerHTML)})
 '@
       $modalRecord = $modal | ConvertFrom-Json
+      $modalRecord | Add-Member resultsValid (Evaluate @'
+(() => {
+  const movement = document.querySelector('#dialog-title').textContent === PROJECTS.movimentacoes.title;
+  const smartworking = document.querySelector('#dialog-title').textContent === PROJECTS.smartworking.title;
+  const etl = document.querySelector('#dialog-title').textContent === PROJECTS.etl.title;
+  const indicators = document.querySelector('#dialog-title').textContent === PROJECTS.indicadores.title;
+  const occupation = document.querySelector('#dialog-title').textContent === PROJECTS.espaco.title;
+  const cards = [...document.querySelectorAll('.case-kpi')];
+  const headings = [...document.querySelectorAll('.case-block h3')].map(e => e.textContent).join('|');
+  const expectedHeadings = movement || smartworking || etl || indicators || occupation
+    ? (etl ? 'Impacto e benefícios' : 'Resultados e benefícios') + '|Contexto / Problema|Solução|Como funciona|Principais funcionalidades|Screenshots / Preview conceitual'
+    : 'Contexto / Problema|Solução|Como funciona|Principais funcionalidades|Resultados e benefícios|Screenshots / Preview conceitual';
+  if (headings !== expectedHeadings) return false;
+  if (!movement && !smartworking && !etl && !indicators && !occupation) return cards.length === 0;
+  const grid = document.querySelector('.case-kpis');
+  const rect = grid.getBoundingClientRect();
+  return cards.length === 4 && document.querySelector('.case-results').contains(grid)
+    && document.querySelector('.case-results').previousElementSibling === document.querySelector('#dialog-content > .tags')
+    && cards.map(e => e.querySelector('dd').textContent).join('|') === (movement
+      ? 'Desde 2022|Status por etapa|Aprovações organizadas|Histórico centralizado'
+      : smartworking ? '13–22 h|~85%|Base centralizada|Aprovações rastreáveis'
+      : etl ? '~7–8 h/mês|75%–85%|Tratamento automatizado|Dados padronizados'
+      : indicators ? '7 dashboards|Consulta permanente|Exploração interativa|Acesso direto'
+      : 'Múltiplos cenários|Déficits e capacidade|Impacto das mudanças|Visão executiva')
+    && cards.every(e => e.scrollWidth <= e.clientWidth && e.getBoundingClientRect().right <= rect.right + 1
+      && [...e.querySelectorAll('dt,dd')].every(text => text.scrollWidth <= text.clientWidth + 1 && getComputedStyle(text).overflowY === 'visible'))
+    && cards.every(e => e.querySelector('svg[aria-hidden="true"][focusable="false"]'))
+    && cards.every(e => e.querySelector('dt').textContent !== e.querySelector('.case-kpi-value').textContent)
+    && (movement ? cards.map(e => e.querySelector('dt').textContent).join('|') === 'Operação contínua|Acompanhamento|Fluxo estruturado|Rastreabilidade'
+      : smartworking ? cards.map(e => e.querySelector('dt').textContent).join('|') === 'Economia mensal|Redução de esforço|Centralização|Rastreabilidade'
+      : !etl || cards.map(e => e.querySelector('dt').textContent).join('|') === 'Economia mensal|Redução de esforço|Automação|Padronização')
+    && (innerWidth <= 560 ? cards[0].offsetTop < cards[1].offsetTop : cards[0].offsetTop === cards[1].offsetTop)
+    && (!(indicators || occupation) || (cards.every(e => e.querySelector('dt').textContent !== e.querySelector('.case-kpi-value').textContent)
+      && cards.map(e => e.querySelector('dt').textContent).join('|') === (indicators
+        ? 'Abrangência|Disponibilidade|Experiência de análise|Acessibilidade'
+        : 'Planejamento|Dimensionamento|Avaliação|Comunicação')
+      && (innerWidth <= 560 || (cards[0].offsetHeight === cards[1].offsetHeight
+        && cards[2].offsetHeight === cards[3].offsetHeight && cards[2].offsetTop === cards[3].offsetTop))))
+    && document.querySelectorAll('.case-results > p').length === (etl || indicators || occupation ? 1 : 3)
+    && (occupation ? grid.nextElementSibling === null
+      && document.querySelector('.case-results > p').textContent === PROJECTS.espaco.result
+      && cards.map(e => e.querySelector('.case-kpi-description').textContent).join('|') === 'Possibilidade de testar diferentes distribuições de equipes e espaços.|Identificação de vagas disponíveis, excedentes e necessidades de alocação.|Recálculo dos indicadores conforme as alocações são ajustadas.|Comparativos e relatórios estruturados para apresentação das propostas.'
+      && !document.querySelector('.case-results-note')
+      : indicators ? grid.nextElementSibling === null
+      && document.querySelector('.case-results > p').textContent === PROJECTS.indicadores.result
+      && cards.map(e => e.querySelector('.case-kpi-description').textContent).join('|') === 'Painéis que abrangem diferentes temas e processos de RH.|Indicadores disponíveis independentemente de apresentações pontuais.|Filtros e visualizações para consultar diferentes recortes dos dados.|Áreas de RH podem consultar os painéis sem solicitar relatórios específicos.'
+      && !grid.textContent.includes('~12 temas')
+      && !document.querySelector('.case-results-note')
+      : movement ? cards[1].querySelector('.case-kpi-description').textContent === 'Visibilidade sobre o andamento das solicitações e suas etapas de aprovação.'
+        && PROJECTS.movimentacoes.context === 'As solicitações eram registradas em um formulário SharePoint, enquanto as aprovações eram solicitadas por e-mail, sem um fluxo estruturado de aprovação.'
+      : !document.querySelector('.case-results-note')
+        && cards[0].querySelector('.case-kpi-description').textContent === (etl ? 'Economia mensal estimada de trabalho manual.' : 'Economia mensal estimada de trabalho operacional.')
+        && cards[1].querySelector('.case-kpi-description').textContent === (etl ? 'Redução estimada do esforço manual por atualização.' : 'Redução estimada do esforço de preparação e consolidação.')
+        && (etl ? grid.nextElementSibling === null
+          && cards[2].querySelector('.case-kpi-description').textContent === 'Transformações e integrações executadas por fluxos reutilizáveis.'
+          && cards[3].querySelector('.case-kpi-description').textContent === 'Regras consistentes para atualização dos relatórios de RH.'
+          && document.querySelector('#dialog-summary').textContent === document.querySelector('[data-project=etl]').closest('.project-copy').querySelector(':scope > p:not(.project-category)').textContent
+          && !PROJECTS.etl.summary.includes('extração')
+          : grid.nextElementSibling?.tagName === 'P'
+            && Math.abs(grid.nextElementSibling.getBoundingClientRect().top - rect.bottom - 20) <= 1));
+})()
+'@)
       Key 'Tab' 9
       $modalRecord | Add-Member tabContained (Evaluate "document.querySelector('dialog').contains(document.activeElement)")
       Key 'Tab' 9 8
       $modalRecord | Add-Member shiftTabContained (Evaluate "document.querySelector('dialog').contains(document.activeElement)")
       if ($projectKey -eq 'movimentacoes' -and $size.name -in @('desktop','mobile')) { Screenshot "$($size.name)-modal" }
+      if ($projectKey -eq 'smartworking') { Screenshot "$($size.name)-smartworking-modal" }
+      if ($projectKey -eq 'etl') { Screenshot "$($size.name)-etl-modal" }
+      if ($projectKey -eq 'indicadores') { Screenshot "$($size.name)-indicadores-modal" }
+      if ($projectKey -eq 'espaco') { Screenshot "$($size.name)-espaco-modal" }
+      if ($projectKey -in @('movimentacoes','smartworking','etl','indicadores','espaco')) {
+        Evaluate "(()=>{const resultsBlock=document.querySelector('.case-results');document.querySelector('dialog').scrollTop+=resultsBlock.getBoundingClientRect().top-document.querySelector('.dialog-header').getBoundingClientRect().bottom-20;})()" | Out-Null
+        if ($projectKey -eq 'movimentacoes') { Screenshot "$($size.name)-modal-results" }
+        else { Screenshot "$($size.name)-$projectKey-results" }
+      }
       Key 'Escape' 27
       Start-Sleep -Milliseconds 100
       $modalRecord | Add-Member escCloses (Evaluate "!document.querySelector('dialog').open")
@@ -115,6 +186,9 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
       Start-Sleep -Milliseconds 100
       $modalRecord | Add-Member backdropCloses (Evaluate "!document.querySelector('dialog').open && document.activeElement.dataset.project==='$projectKey'")
       if (Evaluate "document.querySelector('dialog').open") { Evaluate "document.querySelector('dialog').close();" | Out-Null; Start-Sleep -Milliseconds 100 }
+      if ($projectKey -eq 'movimentacoes') {
+        $modalRecord | Add-Member noOperationalVolume (Evaluate "!(/11\s*mil|volume operacional|pending-public-validation/i.test(document.body.textContent + JSON.stringify(PROJECTS)))")
+      }
       $record | Add-Member $projectKey $modalRecord
     }
     if ($size.width -le 800) {
@@ -178,10 +252,11 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
     } elseif (!$row.desktopMenuVisible) { $failures.Add('Menu desktop') }
     foreach ($projectKey in $projectKeys) {
       $modal = $row.$projectKey
-      foreach ($check in @('open','focusInside','locked','tabContained','shiftTabContained','escCloses','focusRestored','scrollRestored','buttonCloses','backdropCloses','tagsMatch')) {
+      foreach ($check in @('open','focusInside','locked','tabContained','shiftTabContained','escCloses','focusRestored','scrollRestored','buttonCloses','backdropCloses','tagsMatch','resultsValid')) {
         if (!$modal.$check) { $failures.Add("$($row.name), ${projectKey}: $check") }
       }
       if ($modal.overflow) { $failures.Add("$($row.name), ${projectKey}: overflow") }
+      if ($projectKey -eq 'movimentacoes' -and !$modal.noOperationalVolume) { $failures.Add("$($row.name): volume operacional no conteúdo público") }
     }
   }
   if (!$socialDimensions) { $failures.Add('Imagem social: dimensões diferentes de 1200 x 630') }

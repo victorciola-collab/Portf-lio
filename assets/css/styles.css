@@ -1251,6 +1251,74 @@ dialog::backdrop
   background:var(--blue);
   border-radius:50%;
 }
+/* Indicadores exclusivos da seção de resultados do modal de Movimentações. */
+.case-results>p+p
+{
+  margin-top:12px;
+}
+.case-results .case-results-note
+{
+  font-size:12px;
+}
+.case-kpis
+{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin:20px 0;
+}
+.case-kpi
+{
+  min-width:0;
+  padding:20px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+}
+.case-kpi-title
+{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:600;
+}
+.case-kpi-title svg
+{
+  flex:none;
+  width:18px;
+  height:18px;
+  fill:none;
+  stroke:var(--blue);
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.case-kpi-value
+{
+  margin:12px 0 8px;
+  font-size:clamp(22px,calc(18px + .6vw),26px);
+  font-weight:650;
+  letter-spacing:-.035em;
+  line-height:1.2;
+  overflow-wrap:break-word;
+}
+.case-kpi-description
+{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.6;
+}
+@media(max-width:560px)
+{
+  .case-kpis
+  {
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+  }
+}
 .case-flow
 {
   display:flex;
