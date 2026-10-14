@@ -336,13 +336,13 @@ function setupNavigation() {
   const links = [...nav.querySelectorAll('a')];
   const close = () => {
     toggle.setAttribute('aria-expanded', 'false');
-    toggle.setAttribute('aria-label', 'Abrir menu');
+    toggle.setAttribute('aria-label', window.PortfolioI18n?.t('Abrir menu') || 'Abrir menu');
     nav.classList.remove('is-open');
   };
   toggle.addEventListener('click', () => {
     const opening = toggle.getAttribute('aria-expanded') !== 'true';
     toggle.setAttribute('aria-expanded', String(opening));
-    toggle.setAttribute('aria-label', opening ? 'Fechar menu' : 'Abrir menu');
+    toggle.setAttribute('aria-label', window.PortfolioI18n?.t(opening ? 'Fechar menu' : 'Abrir menu') || (opening ? 'Fechar menu' : 'Abrir menu'));
     nav.classList.toggle('is-open', opening);
   });
   links.forEach(link => link.addEventListener('click', close));
@@ -354,7 +354,9 @@ function setupNavigation() {
       target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
       target.setAttribute('tabindex', '-1');
       target.focus({ preventScroll: true });
-      history.replaceState(null, '', link.getAttribute('href'));
+      const url = new URL(location.href);
+      url.hash = link.getAttribute('href');
+      history.replaceState(null, '', url);
     });
   });
   document.addEventListener('keydown', event => {
@@ -431,7 +433,7 @@ function setupProjectDialog() {
     const tags = document.createElement('ul');
     tags.className = 'tags';
     tags.setAttribute('aria-label', 'Tecnologias do projeto');
-    button.closest('.project').querySelectorAll('.tags li').forEach(tag => tags.append(tag.cloneNode(true)));
+    button.closest('.project').querySelectorAll('.tags li').forEach(tag => tags.append(window.PortfolioI18n ? window.PortfolioI18n.clone(tag) : tag.cloneNode(true)));
     content.append(title, summary, tags);
     appendSection('Contexto / Problema', project.context);
     appendSection('Solução', project.solution);
@@ -491,7 +493,9 @@ function setupProjectDialog() {
     if (['movimentacoes', 'smartworking', 'etl', 'indicadores', 'espaco'].includes(button.dataset.project)) tags.after(results);
     const visual = appendSection('Screenshots / Preview conceitual', 'Preview conceitual, sem dados corporativos. Screenshots definitivos ainda não foram incluídos.');
     visual.classList.add('case-visual');
-    visual.append(document.querySelector(project.preview).cloneNode(true));
+    const preview = document.querySelector(project.preview);
+    visual.append(window.PortfolioI18n ? window.PortfolioI18n.clone(preview) : preview.cloneNode(true));
+    window.PortfolioI18n?.update(content);
     document.body.classList.add('modal-open');
     dialog.showModal(); // O dialog nativo torna o restante da página inerte.
     document.dispatchEvent(new CustomEvent('portfolio:project-view', { detail: { project_id: button.dataset.project, project_name: project.title } }));

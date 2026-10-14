@@ -85,9 +85,14 @@
     });
   }
 
+  function localizedText(element, value) {
+    if (window.PortfolioI18n) window.PortfolioI18n.text(element, value);
+    else element.textContent = Array.isArray(value) ? value.join('') : value;
+  }
+
   function showPanel(moveFocus = false) {
-    current.textContent = choice === 'accepted' ? 'Sua escolha atual: análise de tráfego aceita.' :
-      choice === 'declined' ? 'Sua escolha atual: análise de tráfego recusada.' : '';
+    localizedText(current, choice === 'accepted' ? 'Sua escolha atual: análise de tráfego aceita.' :
+      choice === 'declined' ? 'Sua escolha atual: análise de tráfego recusada.' : '');
     panel.hidden = false;
     if (moveFocus) {
       returnFocus = document.activeElement;
@@ -106,7 +111,7 @@
     // Desativar primeiro: uma tag já carregada não deve medir a revogação.
     window[disableKey] = value !== 'accepted';
     const saved = !persist || remember(value);
-    feedback.textContent = value === 'accepted' ? 'Análise de tráfego aceita.' : 'Análise de tráfego recusada.';
+    localizedText(feedback, value === 'accepted' ? 'Análise de tráfego aceita.' : 'Análise de tráfego recusada.');
     if (value === 'accepted') startAnalytics();
     else {
       clearAnalyticsCookies();
@@ -122,7 +127,7 @@
     if (saved) hidePanel();
     else {
       showPanel();
-      current.textContent += ' O navegador não permitiu salvar a preferência. Ela vale apenas nesta página; ao atualizar, uma escolha anteriormente salva poderá ser aplicada.';
+      localizedText(current, [choice === 'accepted' ? 'Sua escolha atual: análise de tráfego aceita.' : 'Sua escolha atual: análise de tráfego recusada.', ' ', 'O navegador não permitiu salvar a preferência. Ela vale apenas nesta página; ao atualizar, uma escolha anteriormente salva poderá ser aplicada.']);
     }
   }
 

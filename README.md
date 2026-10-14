@@ -28,7 +28,7 @@ artifacts/                      Capturas e relatórios locais, ignorados pelo Gi
 
 ## Conteúdo e tecnologias
 
-O site reúne Início, Sobre mim, O que eu faço, Projetos e Contato. A seção de soluções apresenta Analytics, Data Preparation & ETL e Automation & Applications.
+O site reúne Início, Sobre mim, O que eu faço, Projetos e Contato. A seção de soluções apresenta Análise de Dados & BI, Preparação de Dados & ETL e Automação & Aplicações.
 
 São apresentados cinco projetos:
 
@@ -131,3 +131,24 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate.ps1 -Pa
 ```
 
 O validador não inicia um servidor HTTP, não testa a disponibilidade dos perfis externos e não publica arquivos. Complementar a conferência em Safari/Firefox, dispositivo físico, leitor de tela e no preview real do LinkedIn após uma publicação autorizada.
+
+## Português e inglês
+
+O seletor PT | EN está disponível no cabeçalho das duas páginas. A prioridade é `?lang=pt` ou `?lang=en`, seguida da preferência `portfolio.language.v1` no localStorage, seguida de português. Links entre páginas e mudanças de âncora preservam o idioma. Quando o armazenamento está bloqueado, a URL continua funcionando. A preferência de idioma é independente de `portfolio.analytics-consent.v1`.
+
+O português permanece no HTML e em `PROJECTS`, como fonte original e fallback sem JavaScript ou para entradas ausentes. `assets/js/locales/en.js` contém o catálogo inglês por interface, projetos, previews, privacidade e metadados. `assets/js/i18n.js` registra os textos portugueses e atualiza apenas nós de texto e atributos localizados. Os clones de tecnologias e previews recuperam a fonte portuguesa antes de serem localizados. A troca não reconstrói modais nem emite eventos de projeto/Analytics.
+
+Para manutenção: atualize primeiro `docs/revisao-traducoes-en.md`, depois a entrada correspondente do catálogo. As chaves são textos portugueses exatos; ao revisar uma fonte PT, revise também sua chave EN. Não traduzir seletores, nomes de produtos, URLs ou parâmetros de rastreamento. Uma mesma tradução atende aos cards e modais. Mensagens dinâmicas de consentimento usam a função de texto localizado, mantendo sua fonte PT para futuras trocas.
+
+O inglês usa convenções americanas (`lang=en`, Open Graph `en_US`). Títulos e descrições dos metadados são atualizados no navegador. A imagem social permanece em português; tradução por JavaScript não garante prévias sociais ou indexação EN independentes. Não há páginas duplicadas ou build.
+
+### Validação bilíngue local
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate-bilingual.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate-analytics.ps1 -AuditLanguage pt
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\validate-analytics.ps1 -AuditLanguage en -Port 9246 -HttpPort 8772
+```
+
+O teste bilíngue cobre duas páginas e dois idiomas de 320 a 1920 px, incluindo 800/801 px, os cinco modais e 20 KPIs, foco, Escape, seletor, persistência, navegação e armazenamento bloqueado. As capturas e o relatório ficam em `artifacts/bilingual/`; perfis de navegador ficam em `.local-preview/`. Os testes de Analytics interceptam requisições e validam que a mudança de idioma não altera consentimento, configuração ou quantidade de eventos. Essas pastas continuam ignoradas pelo Git.
