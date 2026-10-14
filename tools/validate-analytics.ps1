@@ -1,22 +1,41 @@
-param([int]$Port = 9245, [int]$HttpPort = 8771, [switch]$RealTag)
+﻿param([int]$Port = 9245, [int]$HttpPort = 8771, [switch]$RealTag, [ValidateSet('pt','en')][string]$AuditLanguage = 'pt')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $auditProjectRoot = $projectRoot
 $baseUrl = "http://127.0.0.1:$HttpPort/Portf-lio/"
-$server = Start-Job -ArgumentList $projectRoot,$HttpPort -ScriptBlock {
-  param($root,$port)
+$diagnosticDir = Join-Path $projectRoot 'artifacts/analytics/diagnostics'
+New-Item -ItemType Directory -Force -Path $diagnosticDir | Out-Null
+$runId = "$AuditLanguage-" + [Guid]::NewGuid().ToString('N')
+$diagnosticFile = Join-Path $diagnosticDir "$runId-browser.jsonl"
+$serverLog = Join-Path $diagnosticDir "$runId-server.log"
+function Trace([string]$event, $details = @{}) {
+  [IO.File]::AppendAllText($diagnosticFile, ((@{time=[DateTime]::UtcNow.ToString('o');event=$event;details=$details}|ConvertTo-Json -Depth 8 -Compress) + [Environment]::NewLine))
+}
+$server = Start-Job -ArgumentList $projectRoot,$HttpPort,$serverLog -ScriptBlock {
+  param($root,$port,$log)
   $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,$port)
   $listener.Start()
   try {
     while ($true) {
       if (!$listener.Pending()) { Start-Sleep -Milliseconds 50; continue }
       $client = $listener.AcceptTcpClient(); $stream = $client.GetStream()
+      # A preconnection may not send HTTP headers. It must not block every resource.
+      $client.ReceiveTimeout = 1000
+      $reader = $null
+      try {
+      [IO.File]::AppendAllText($log, [DateTime]::UtcNow.ToString('o') + " accepted" + [Environment]::NewLine)
       $reader = [IO.StreamReader]::new($stream,[Text.Encoding]::ASCII,$false,1024,$true)
-      $line = $reader.ReadLine(); while ($reader.ReadLine()) {}
+      $line = $reader.ReadLine()
+      if ([string]::IsNullOrWhiteSpace($line)) { continue }
+      do {
+        $headerLine = $reader.ReadLine()
+        if ($null -eq $headerLine) { throw [IO.InvalidDataException]::new('Incomplete HTTP headers') }
+      } while ($headerLine -ne '')
+      [IO.File]::AppendAllText($log, [DateTime]::UtcNow.ToString('o') + " headers-read: $line" + [Environment]::NewLine)
       $path = ([Uri]('http://localhost'+$line.Split(' ')[1])).AbsolutePath
       $relative = [Uri]::UnescapeDataString($path).Replace('/Portf-lio/','')
       if (!$relative) { $relative = 'index.html' }
-      $allowed = @('index.html','privacidade.html','assets/css/styles.css','assets/js/app.js','assets/js/analytics.js','assets/images/favicon.svg','assets/images/social-card.png')
+      $allowed = @('index.html','privacidade.html','assets/css/styles.css','assets/js/app.js','assets/js/analytics.js','assets/js/i18n.js','assets/js/locales/en.js','assets/images/favicon.svg','assets/images/social-card.png')
       $status = '404 Not Found'; $mime = 'text/plain'; $body = [Text.Encoding]::UTF8.GetBytes('Not found')
       if ($path.StartsWith('/Portf-lio/') -and ($allowed -ccontains $relative)) {
         $status = '200 OK'; $body = [IO.File]::ReadAllBytes((Join-Path $root $relative))
@@ -27,7 +46,13 @@ $server = Start-Job -ArgumentList $projectRoot,$HttpPort -ScriptBlock {
       }
       $header = [Text.Encoding]::ASCII.GetBytes("HTTP/1.1 $status"+[char]13+[char]10+"Content-Type: $mime"+[char]13+[char]10+"Content-Length: $($body.Length)"+[char]13+[char]10+"Connection: close"+[char]13+[char]10+[char]13+[char]10)
       $stream.Write($header,0,$header.Length); $stream.Write($body,0,$body.Length)
-      $reader.Dispose(); $client.Dispose()
+      [IO.File]::AppendAllText($log, [DateTime]::UtcNow.ToString('o') + " served: $status" + [Environment]::NewLine)
+      } catch [IO.IOException] {
+        [IO.File]::AppendAllText($log, [DateTime]::UtcNow.ToString('o') + " connection discarded: $($_.Exception.Message)" + [Environment]::NewLine)
+      } finally {
+        if ($reader) { $reader.Dispose() }
+        $client.Dispose()
+      }
     }
   } finally { $listener.Stop() }
 }
@@ -64,6 +89,7 @@ function Reply-Fetch($parameters) {
 }
 function Handle-Fetch($parameters) {
   $url = $parameters.request.url
+  Trace 'google-intercepted' @{url=$url;held=$script:holdTag}
   $script:interceptedRequests.Add($url)
   if ($url -match '/gtag/js') {
     if ($script:holdTag) { return }
@@ -84,9 +110,12 @@ function Handle-Fetch($parameters) {
 }
 function Assert($condition,[string]$message) { if (!$condition) { throw $message } }
 function Wait-Page {
+  Trace 'wait-start' @{caller=(Get-PSCallStack)[1].ScriptLineNumber}
   for ($i=0;$i -lt 30;$i++) {
     Start-Sleep -Milliseconds 100
-    if (Evaluate "document.readyState==='complete' && !!document.querySelector('#analytics-consent')") { return }
+    $state = (Evaluate "JSON.stringify({url:location.href,readyState:document.readyState,panel:!!document.querySelector('#analytics-consent'),i18n:!!window.PortfolioI18n,catalog:!!window.PORTFOLIO_EN,tag:!!document.querySelector('#ga4-tag')})") | ConvertFrom-Json
+    Trace 'wait-state' @{attempt=$i;state=$state}
+    if ($state.readyState -eq 'complete' -and $state.panel) { return }
   }
   throw 'Page load timeout'
 }
@@ -105,18 +134,35 @@ function Open-Projects {
 $source = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot 'validate.ps1')
 $helper = $source.Substring(0,([regex]::Match($source,'(?m)^try \{')).Index)
 $helper = $helper.Replace('$projectRoot = Split-Path $PSScriptRoot -Parent', '$projectRoot = $auditProjectRoot')
+$helper = $helper.Replace('  $script:messageId++', '  Trace ''cdp-command'' @{method=$method;parameters=$parameters}; $script:messageId++')
 $helper = [regex]::Replace($helper,'(?m)^\$profile = .*$',{ '$profile = Join-Path $projectRoot ''.local-preview/analytics''' })
 $helper = [regex]::Replace($helper,'(?m)^\$outputDir = .*$',{ '$outputDir = Join-Path $projectRoot ''artifacts/analytics''' })
 $marker = '    if ($message.method -eq ''Runtime.exceptionThrown'')'
 $helper = $helper.Replace($marker,@'
+    if ($message.method -in @('Network.requestWillBeSent','Network.loadingFinished','Network.loadingFailed')) { Trace $message.method $message.params }
     if ($message.method -eq 'Fetch.requestPaused') { Handle-Fetch $message.params }
     if ($message.method -eq 'Network.requestWillBeSent' -and $message.params.request.url -match 'https://[^/]*(googletagmanager\.com|google-analytics\.com|analytics\.google\.com|doubleclick\.net|googlesyndication\.com)/') { $script:networkRequests.Add($message.params.request.url) }
     if ($message.method -eq 'Runtime.exceptionThrown')
 '@)
-$report = @{transport='simulated; Google requests intercepted';viewports=@();passed=$false}
+$report = @{transport='simulated; Google requests intercepted';viewports=@();passed=$false;diagnosticFile=$diagnosticFile;serverLog=$serverLog}
 try {
   for ($i=0;$i -lt 20;$i++) { try { $ready=Invoke-WebRequest $baseUrl -UseBasicParsing -TimeoutSec 2;break } catch { Start-Sleep -Milliseconds 200 } }
   Assert ($ready.StatusCode -eq 200) 'HTTP server unavailable'
+  # Regression: an idle TCP connection must not starve subsequent HTTP requests.
+  $idleProbe = [Net.Sockets.TcpClient]::new()
+  try {
+    $idleProbe.Connect('127.0.0.1', $HttpPort)
+    Start-Sleep -Milliseconds 100
+    $response = Invoke-WebRequest $baseUrl -UseBasicParsing -TimeoutSec 2
+    Assert ($response.StatusCode -eq 200) 'HTTP server blocked by idle connection'
+    Trace 'idle-connection-regression' @{passed=$true}
+  } finally { $idleProbe.Dispose() }
+  $emptyProbe = [Net.Sockets.TcpClient]::new()
+  $emptyProbe.Connect('127.0.0.1', $HttpPort)
+  $emptyProbe.Dispose()
+  Start-Sleep -Milliseconds 100
+  $response = Invoke-WebRequest $baseUrl -UseBasicParsing -TimeoutSec 2
+  Assert ($response.StatusCode -eq 200) 'HTTP server stopped after empty connection'
   . ([scriptblock]::Create($helper)) -Port $Port
   for ($i=0;$i -lt 30;$i++) { try { $targets=Invoke-RestMethod "http://localhost:$Port/json" -TimeoutSec 2;break } catch { Start-Sleep -Milliseconds 200 } }
   $target=$targets|Where-Object type -eq 'page'|Select-Object -First 1
@@ -129,7 +175,7 @@ try {
     Send-CDP 'Storage.clearDataForOrigin' @{origin="http://127.0.0.1:$HttpPort";storageTypes='all'}|Out-Null
     $script:networkRequests.Clear()
     Send-CDP 'Emulation.setDeviceMetricsOverride' @{width=$width;height=900;deviceScaleFactor=1;mobile=$false}|Out-Null
-    Send-CDP 'Page.navigate' @{url=($baseUrl+'?email=visitor%40example.test#inicio')}|Out-Null; Wait-Page; Settle
+    Send-CDP 'Page.navigate' @{url=($baseUrl+'?lang='+$AuditLanguage+'&email=visitor%40example.test#inicio')}|Out-Null; Wait-Page; Settle
     Assert ((Google-Count) -eq 0) "$width px: Google request before consent"
     Assert (Evaluate "!document.querySelector('#analytics-consent').hidden && !document.querySelector('#ga4-tag') && !window.dataLayer && document.documentElement.scrollWidth<=innerWidth") "$width px: first visit"
     Assert (Evaluate "[...document.querySelectorAll('[data-consent-choice]')].every(b=>!b.hasAttribute('aria-pressed')&&b.getBoundingClientRect().height>=44) && Math.abs(document.querySelector('[data-consent-choice=accepted]').offsetWidth-document.querySelector('[data-consent-choice=declined]').offsetWidth)<=1") "$width px: button balance"
@@ -161,6 +207,7 @@ document.querySelectorAll('nav a').forEach(e=>e.click());
 '@|Out-Null; Settle
     Assert (Evaluate "window.__analyticsTest.events.filter(e=>e.name==='contact_click').length===4 && window.__analyticsTest.events.filter(e=>e.name==='contact_click').every(e=>['linkedin','email'].includes(e.parameters.contact_channel)) && window.__analyticsTest.events.filter(e=>e.name==='page_view').length===1") "$width px: contacts or page_view duplication"
     Assert (Evaluate "window.__analyticsTest.events.every(e=>!JSON.stringify(e.parameters).includes('visitor') && !JSON.stringify(e.parameters).includes('@') && !e.parameters.page_location.includes('?') && !e.parameters.page_location.includes('#'))") 'PII in parameters'
+    Assert (Evaluate "(()=>{const events=window.__analyticsTest.events.length,configs=window.__analyticsTest.commands.filter(c=>c[0]==='config').length,consent=localStorage.getItem('portfolio.analytics-consent.v1');PortfolioI18n.setLanguage(PortfolioI18n.language==='pt'?'en':'pt');PortfolioI18n.setLanguage('$AuditLanguage');return window.__analyticsTest.events.length===events&&window.__analyticsTest.commands.filter(c=>c[0]==='config').length===configs&&localStorage.getItem('portfolio.analytics-consent.v1')===consent;})()") 'Language switch: no new events/configuration or consent changes'
     Assert (Evaluate "window.__analyticsTest.commands.some(c=>c[0]==='config'&&c[2].send_page_view===false&&c[2].allow_google_signals===false&&c[2].allow_ad_personalization_signals===false&&c[2].cookie_path==='/Portf-lio/') && window.__analyticsTest.commands.filter(c=>c[0]==='consent').every(c=>!['ad_storage','ad_user_data','ad_personalization'].some(k=>c[2][k]==='granted'))") 'Advertising or configuration'
     Send-CDP 'Page.reload'|Out-Null; Wait-Page; Settle
     Assert ((Tag-Count) -eq 2 -and (Evaluate "window.__analyticsTest.events.filter(e=>e.name==='page_view').length===1 && document.querySelector('#analytics-consent').hidden")) "$width px: accepted reload"
@@ -171,7 +218,7 @@ document.querySelectorAll('nav a').forEach(e=>e.click());
     Assert ((Google-Count) -eq $beforeRevoke) "$width px: requests after revoke"
     Evaluate "document.querySelector('[data-consent-review]').click();document.querySelector('[data-consent-choice=accepted]').click();"|Out-Null; Settle
     Assert ((Tag-Count) -eq 3) "$width px: reaccept"
-    Send-CDP 'Page.navigate' @{url=($baseUrl+'privacidade.html')}|Out-Null; Wait-Page; Settle
+    Send-CDP 'Page.navigate' @{url=($baseUrl+'privacidade.html?lang='+$AuditLanguage)}|Out-Null; Wait-Page; Settle
     Assert (Evaluate "document.documentElement.scrollWidth<=innerWidth && document.querySelector('.privacy-document') && !!document.querySelector('[data-consent-review]') && window.__analyticsTest.events.filter(e=>e.name==='page_view').length===1") "$width px: privacy page"
     Screenshot "privacy-$width"
     Evaluate "document.querySelector('[data-consent-review]').click();document.querySelector('[data-consent-choice=declined]').click();"|Out-Null; Wait-Page; Settle
@@ -180,7 +227,7 @@ document.querySelectorAll('nav a').forEach(e=>e.click());
   }
   if ($RealTag) {
     Send-CDP 'Storage.clearDataForOrigin' @{origin="http://127.0.0.1:$HttpPort";storageTypes='all'}|Out-Null
-    Send-CDP 'Page.navigate' @{url=$baseUrl}|Out-Null; Wait-Page; Settle
+    Send-CDP 'Page.navigate' @{url=($baseUrl+'?lang='+$AuditLanguage)}|Out-Null; Wait-Page; Settle
     Assert ((Google-Count) -eq 0) 'Real tag: request before consent'
     Evaluate "document.querySelector('[data-consent-choice=accepted]').click();"|Out-Null
     for ($attempt=0;$attempt -lt 20;$attempt++) {
@@ -203,7 +250,7 @@ document.querySelectorAll('nav a').forEach(e=>e.click());
     Write-Output 'Official tag, five project events and revocation: passed'
   }
   Send-CDP 'Storage.clearDataForOrigin' @{origin="http://127.0.0.1:$HttpPort";storageTypes='all'}|Out-Null
-  Send-CDP 'Page.navigate' @{url=$baseUrl}|Out-Null; Wait-Page
+  Send-CDP 'Page.navigate' @{url=($baseUrl+'?lang='+$AuditLanguage)}|Out-Null; Wait-Page
   $script:holdTag=$true
   Evaluate "document.querySelector('[data-consent-choice=accepted]').click();"|Out-Null; Settle
   Evaluate "document.querySelector('[data-consent-review]').click();document.querySelector('[data-consent-choice=declined]').click();"|Out-Null; Wait-Page
@@ -214,10 +261,11 @@ document.querySelectorAll('nav a').forEach(e=>e.click());
   $beforeBlocked=Google-Count
   Send-CDP 'Page.reload'|Out-Null; Wait-Page; Settle
   Evaluate "document.querySelector('[data-consent-choice=declined]').click();"|Out-Null
-  Assert (Evaluate "!document.querySelector('#ga4-tag') && !document.querySelector('#analytics-consent').hidden && document.querySelector('[data-consent-current]').textContent.includes('salvar')") 'Blocked storage'
+  Assert (Evaluate "!document.querySelector('#ga4-tag') && !document.querySelector('#analytics-consent').hidden && document.querySelector('[data-consent-current]').textContent.includes(PortfolioI18n.t('O navegador não permitiu salvar a preferência. Ela vale apenas nesta página; ao atualizar, uma escolha anteriormente salva poderá ser aplicada.'))") 'Blocked storage'
   Assert ((Google-Count) -eq $beforeBlocked) 'Tracking inaccessible preference'
   Send-CDP 'Page.removeScriptToEvaluateOnNewDocument' @{identifier=$override.identifier}|Out-Null
   $report.blockedStorage=$true
+  $report.httpConnectionRegression=$true
   Assert ($script:browserErrors.Count -eq 0) 'JavaScript errors'
   $report.runtimeErrors=$script:browserErrors
   $report.passed=$true

@@ -59,6 +59,7 @@ try {
   Send-CDP 'Runtime.enable' | Out-Null
   Send-CDP 'Page.bringToFront' | Out-Null
   if (!$PageUrl) { $PageUrl = ([Uri](Join-Path $projectRoot 'index.html')).AbsoluteUri }
+  $PageUrl = ($PageUrl -split '[?#]')[0] + '?lang=pt'
   Add-Type -AssemblyName System.Drawing
   $socialImage = [Drawing.Image]::FromFile((Join-Path $projectRoot 'assets/images/social-card.png'))
   try { $socialDimensions = $socialImage.Width -eq 1200 -and $socialImage.Height -eq 630 } finally { $socialImage.Dispose() }
@@ -220,7 +221,7 @@ JSON.stringify({open:document.querySelector('dialog').open,focusInside:document.
     $record | Add-Member sectionNumbers (Evaluate "[...document.querySelectorAll('main > section:not(#inicio)')].map(e=>e.querySelector('.eyebrow').textContent.trim().toUpperCase()).join(',')==='01 / SOBRE,02 / SOLUÇÕES,03 / PROJETOS,04 / CONTATO'")
     $record | Add-Member techIcons (Evaluate "document.querySelectorAll('.solution-technologies .tech-icon svg').length===13 && document.querySelectorAll('.project .tags .tech-icon svg').length===21 && !document.querySelector('.solution-technologies img') && [...document.querySelectorAll('main .tech-icon svg')].every(icon=>getComputedStyle(icon).stroke==='rgb(36, 91, 219)' && icon.getBoundingClientRect().width===18 && icon.getBoundingClientRect().height===18)")
     $record | Add-Member technologyTags (Evaluate "[...document.querySelectorAll('.solution-technologies')].map(list=>[...list.querySelectorAll('.tech-tag > span:last-child')].map(e=>e.textContent).join(',')).join(';')==='Power BI,DAX,Excel;Power Query,SQL,Python;Power Apps,Power Automate,SharePoint,JavaScript,HTML / CSS,VBA,Git / GitHub' && document.querySelectorAll('.tech-tag').length===13 && [...document.querySelectorAll('.tech-tag')].every(e=>e.offsetHeight===32 && getComputedStyle(e).animationName==='none' && e.getBoundingClientRect().right<=e.parentElement.getBoundingClientRect().right+1)")
-    $record | Add-Member solutionPillars (Evaluate "[...document.querySelectorAll('.solution h3')].map(e=>e.textContent).join(',')==='Analytics,Data Preparation & ETL,Automation & Applications' && document.querySelectorAll('.solution').length===3")
+    $record | Add-Member solutionPillars (Evaluate "[...document.querySelectorAll('.solution h3')].map(e=>e.textContent).join(',')==='Análise de Dados & BI,Preparação de Dados & ETL,Automação & Aplicações' && document.querySelectorAll('.solution').length===3")
     foreach ($sectionId in @('sobre','solucoes')) {
       Evaluate "document.activeElement.blur();document.querySelector('#$sectionId').scrollIntoView({behavior:'instant'});" | Out-Null
       Start-Sleep -Milliseconds 100
